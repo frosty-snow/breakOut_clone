@@ -3,6 +3,13 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+## The SFML Dlls
+*.dll
+
+## The git text files
+.gitattributes
+.gitignore
+
 # User-specific files
 *.rsuser
 *.suo
