@@ -2,8 +2,26 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 
+enum gameScreen
+{
+	menuTitle, menuMain, menuWin, menuLose, menuPause, playing
+};
+
+struct State
+{
+	gameScreen screen;  // default value set on initialization of the game;
+	std::vector<float> prevBallPosition; // this is saved to use against current position to calc ballVector
+	std::vector<float> ballVector;
+
+	std::vector<float> prevPaddlePosition;
+	std::vector<float> paddleVector;
+
+};
+
 class GameDriver
 {
+public:
+	State state;
 public:
 	// Constants defined here
 	const float pi = 3.14159;
@@ -49,6 +67,7 @@ public:
 	GameDriver();
 	~GameDriver();
 
+	void init_Menu();
 	void init_Game();
 	void buildLayout();
 	void drawScreen();
