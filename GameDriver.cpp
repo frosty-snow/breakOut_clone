@@ -90,9 +90,12 @@ void GameDriver::drawScreen()
 {
 	window.clear(sf::Color(50, 200, 50));
 
-	if (state.screen == menuTitle) {
+	if (state.screen == menuTitle) 
+	{
 		window.draw(menuText);
-	} else if (state.screen == playing) {
+	} 
+	else if (state.screen == playing) 
+	{
 		window.draw(paddle);
 		window.draw(ball);
 		for (auto brickLayer : bricks)
@@ -102,6 +105,21 @@ void GameDriver::drawScreen()
 				window.draw(brick);
 			}
 		}
+	}
+	else if (state.screen == menuMain) 
+	{
+		// use this section to draw the main menu - maybe leaderboards?
+	}
+	else if (state.screen == menuPause) {
+		// use this section to draw the pause screen
+	}
+	else if (state.screen == menuWin)
+	{
+		// use this section to draw the win screen
+	}
+	else if (state.screen == menuLose)
+	{
+		// use this section to draw to the lose screen
 	}
 
 	window.display();
