@@ -2,11 +2,14 @@
 
 GameDriver::GameDriver()
 {
-	init_Game();
+	init_Menu();
 }
 
-void GameDriver::init_Game()
+void GameDriver::init_Menu()
 {
+	// Set default starting state
+	state.screen = menuTitle;
+	
 	// Create the window of the application
 	window.create(sf::VideoMode(), "Breakout Clone", sf::Style::Fullscreen);
 	window.setVerticalSyncEnabled(true);
@@ -21,8 +24,10 @@ void GameDriver::init_Game()
 	ballSound(ballSoundBuffer);
 	*/
 
-	// TODO: choose text font to display menu messages
-	//if (!font.loadFromFile("filepath")) return false;
+	// Load font
+	//if (!
+	font.loadFromFile("./resources/sansation.ttf");
+	//) return false;
 
 	// Setup menu text
 	menuText.setFont(font);
@@ -30,7 +35,10 @@ void GameDriver::init_Game()
 	menuText.setPosition(windowWidth / 2, windowHeight / 4);
 	menuText.setFillColor(sf::Color::White);
 	menuText.setString("BreakOut Clone - BiFrost Games");
+}
 
+void GameDriver::init_Game()
+{
 	// Setup paddle
 	sf::Vector2f paddleSize(paddleWidth, paddleHeight);
 	paddle.setSize(paddleSize - sf::Vector2f(3, 3));
@@ -50,7 +58,6 @@ void GameDriver::init_Game()
 
 	// Setup bricks
 	buildLayout();
-
 }
 
 void GameDriver::buildLayout()
@@ -82,13 +89,18 @@ void GameDriver::buildLayout()
 void GameDriver::drawScreen()
 {
 	window.clear(sf::Color(50, 200, 50));
-	window.draw(paddle);
-	window.draw(ball);
-	for (auto brickLayer : bricks)
-	{
-		for (auto brick : brickLayer)
+
+	if (state.screen == menuTitle) {
+		window.draw(menuText);
+	} else if (state.screen == playing) {
+		window.draw(paddle);
+		window.draw(ball);
+		for (auto brickLayer : bricks)
 		{
-			window.draw(brick);
+			for (auto brick : brickLayer)
+			{
+				window.draw(brick);
+			}
 		}
 	}
 
