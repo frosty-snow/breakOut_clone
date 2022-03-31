@@ -70,7 +70,8 @@ public:
 	void init_Menu();
 	void init_Game();
 	void buildLayout();
-	void drawScreen();
+	void renderScreen();
+	void simulatePhysics();
 
 };
 

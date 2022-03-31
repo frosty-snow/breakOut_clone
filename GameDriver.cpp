@@ -32,7 +32,7 @@ void GameDriver::init_Menu()
 	// Setup menu text
 	menuText.setFont(font);
 	menuText.setCharacterSize(40);
-	menuText.setPosition(windowWidth / 2, windowHeight / 4);
+	menuText.setPosition(windowWidth / 3, windowHeight / 4);
 	menuText.setFillColor(sf::Color::White);
 	menuText.setString("BreakOut Clone - BiFrost Games");
 }
@@ -86,7 +86,7 @@ void GameDriver::buildLayout()
 	}
 }
 
-void GameDriver::drawScreen()
+void GameDriver::renderScreen()
 {
 	window.clear(sf::Color(50, 200, 50));
 
@@ -123,4 +123,8 @@ void GameDriver::drawScreen()
 	}
 
 	window.display();
+}
+
+void GameDriver::simulatePhysics() {
+
 }
