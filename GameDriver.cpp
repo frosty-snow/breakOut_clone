@@ -38,6 +38,8 @@ void GameDriver::init_Menu()
 
 void GameDriver::init_Game()
 {
+	reset_Game();
+
 	// Setup paddle size, color, and position
 	sf::Vector2f paddleSize(paddleWidth, paddleHeight);
 	paddle.setSize(paddleSize - sf::Vector2f(3, 3));
@@ -65,6 +67,11 @@ void GameDriver::init_Game()
 
 	// Create brick 2D vectors for render on screen
 	buildLayout();
+}
+
+void GameDriver::reset_Game()
+{
+	bricks.clear();
 }
 
 void GameDriver::buildLayout()
@@ -122,7 +129,8 @@ void GameDriver::renderScreen()
 		// use this section to draw the main menu - maybe leaderboards?
 	}
 	else if (state.screen == menuPause) {
-		// use this section to draw the pause screen
+		menuText.setString("Game PAUSED!\n Press P to resume or ESCAPE to exit the game.");
+		window.draw(menuText);
 	}
 	else if (state.screen == menuWin)
 	{

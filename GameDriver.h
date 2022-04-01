@@ -81,6 +81,7 @@ public:
 
 	void init_Menu();
 	void init_Game();
+	void reset_Game();
 	void buildLayout();
 
 

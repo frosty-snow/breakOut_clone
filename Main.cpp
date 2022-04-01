@@ -16,12 +16,23 @@ int main()
                 game->window.close();
                 break;
             }
-            // Space key pressed - start game
+            // Space key pressed - start game if not already playing
             if (((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Space)))
             {
-                game->init_Game();
-                game->state.screen = playing;
-                clock.restart();
+                if (game->state.screen != playing)
+                {
+                    game->init_Game();
+                    game->state.screen = playing;
+                    clock.restart();
+                }
+            }
+            // P key pressed - pause game
+            if (((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::P)))
+            {
+                if (game->state.screen == playing)
+                    game->state.screen = menuPause;
+                else if (game->state.screen == menuPause)
+                    game->state.screen = playing;
             }
         }
         float deltaTime = clock.restart().asSeconds();
