@@ -30,10 +30,10 @@ void GameDriver::init_Menu()
 
 	// Setup menu text
 	menuText.setFont(font);
-	menuText.setCharacterSize(40);
-	menuText.setPosition(windowWidth / 3, windowHeight / 4);
-	menuText.setFillColor(sf::Color::White);
-	menuText.setString("BreakOut Clone - BiFrost Games");
+	menuText.setCharacterSize(60);
+	menuText.setPosition(windowWidth / 8, windowHeight / 4);
+	menuText.setFillColor(sf::Color::Black);
+	menuText.setString("BreakOut Clone - ByFrost Games");
 }
 
 void GameDriver::init_Game()
@@ -73,6 +73,10 @@ void GameDriver::buildLayout()
 	int numRows = windowWidth / brickWidth - 2;
 	int numCols = windowHeight / 3 / brickHeight - 2;
 
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> distr(0, 255);
+
 	// Create all the bricks
 	for (int row = 1; row <= numRows; row++)
 	{
@@ -84,7 +88,7 @@ void GameDriver::buildLayout()
 			brick.setSize(brickSize - sf::Vector2f(3, 3));
 			brick.setOutlineThickness(3);
 			brick.setOutlineColor(sf::Color::Black);
-			brick.setFillColor(brickColor);
+			brick.setFillColor(sf::Color(distr(gen), distr(gen), distr(gen)));
 			brick.setOrigin(brickSize / 2.f);
 			brick.setPosition((brickWidth + 5) * row, (brickHeight + 5) * col);
 			brickLayer.push_back(brick);
@@ -95,7 +99,7 @@ void GameDriver::buildLayout()
 
 void GameDriver::renderScreen()
 {
-	window.clear(sf::Color(50, 200, 50));
+	window.clear(windowColor);
 
 	if (state.screen == menuTitle) 
 	{
@@ -122,11 +126,13 @@ void GameDriver::renderScreen()
 	}
 	else if (state.screen == menuWin)
 	{
-		// use this section to draw the win screen
+		menuText.setString("You WIN!\n Press SPACE to play again or ESCAPE to exit the game.");
+		window.draw(menuText);
 	}
 	else if (state.screen == menuLose)
 	{
-		// use this section to draw to the lose screen
+		menuText.setString("You LOSE!\n Press SPACE to play again or ESCAPE to exit the game.");
+		window.draw(menuText);
 	}
 
 	window.display();
@@ -191,15 +197,20 @@ void GameDriver::simulatePhysics(float deltaTime)
 	}
 	if (ball.getPosition().y + ballRadius > windowHeight)
 	{
-		// hitting bottom wall
-		state.ballVector.y *= -1;
+		// hitting bottom wall for debugging
+		/*state.ballVector.y *= -1;
 		ballSound.play();
 		ball.setPosition(ball.getPosition().x, ball.getPosition().y - ballRadius - 0.5);
-		/* Once game is ready this will be a losing action
-		* state.screen = menuLose;
 		*/
+		state.screen = menuLose;
 	}
 
+	/************************
+	* So i can get the ball stuck inside the paddle when moving from the side into the ball and it then moves through the
+	* middle and bounces out the other side - unsuccessful in addressing this so far - going to finish everything else
+	* I can make it look good enough for a screen cap and just avoid showing that happening - enough to finish off
+	* the resume and start job applying again.
+	*/
 	// Handle paddle collisions
 	if (checkIntersectionPaddle(ball))
 	{
@@ -216,18 +227,18 @@ void GameDriver::simulatePhysics(float deltaTime)
 			ball.setPosition(ball.getPosition().x, ball.getPosition().y + 0.5);
 		}
 		// hit off the right side
-		else if (ball.getPosition().x - ballRadius < state.paddleVector.x + paddleWidth / 2 + 0.5)
+		else if (ball.getPosition().x - ballRadius < state.paddleVector.x + paddleWidth / 2 + 1)
 		{
 			state.ballVector.y *= -1;
 			state.ballVector.x = abs(state.ballVector.x); // always want ball to move off in the right direction
-			ball.setPosition(ball.getPosition().x + 0.5, ball.getPosition().y);
+			ball.setPosition(state.paddleVector.x + paddleWidth / 2 + 1, ball.getPosition().y - ballRadius - 0.1);
 		}
 		// hit off the left side
-		else if (ball.getPosition().x + ballRadius > state.paddleVector.x - paddleWidth / 2 - 0.5)
+		else if (ball.getPosition().x + ballRadius > state.paddleVector.x - paddleWidth / 2 - 1)
 		{
 			state.ballVector.y *= -1;
 			state.ballVector.x = -1 * abs(state.ballVector.x); // always want ball to move off in the left direction
-			ball.setPosition(ball.getPosition().x - 0.5, ball.getPosition().y);
+			ball.setPosition(state.paddleVector.x - paddleWidth / 2 - 1, ball.getPosition().y - ballRadius - 0.1);
 		}
 
 		ballSound.play();

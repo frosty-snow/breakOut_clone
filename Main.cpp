@@ -35,11 +35,5 @@ int main()
         game->renderScreen();
     }
 
-
-    // so would need master thread that would manage game time
-    // first thread would simulate physics
-    // second thread would render the screen
-    // third thread that handles user input?
-
     return EXIT_SUCCESS;
 }

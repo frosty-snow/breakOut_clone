@@ -3,6 +3,7 @@
 #include <SFML/Audio.hpp>
 #include <math.h>
 #include <iostream> // for debugging
+#include <random>
 
 enum gameScreen
 {
@@ -27,7 +28,7 @@ struct State
 
 	// Values can be adjusted here for testing to find good game speed
 	const float ballSpeed = 400;
-	const float paddleSpeed = 400;
+	const float paddleSpeed = 300;
 
 };
 
@@ -55,6 +56,7 @@ public:
 	sf::Color ballColor = sf::Color::White;
 	sf::Color paddleColor = sf::Color(10, 20, 0);
 	sf::Color brickColor = sf::Color(10, 200, 200);
+	sf::Color windowColor = sf::Color(220, 220, 220);
 
 	// Window
 	sf::RenderWindow window;
