@@ -86,6 +86,7 @@ public:
 
 	// Collision and physics
 	bool checkIntersection(sf::CircleShape ball, sf::RectangleShape brick);
+	bool checkIntersectionPaddle(sf::CircleShape ball);
 	void simulatePhysics(float deltaTime);
 
 	// User input

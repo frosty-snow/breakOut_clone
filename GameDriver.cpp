@@ -45,7 +45,7 @@ void GameDriver::init_Game()
 	paddle.setOutlineColor(sf::Color::Black);
 	paddle.setFillColor(paddleColor);
 	paddle.setOrigin(paddleSize / 2.f);
-	paddle.setPosition(windowWidth / 2, windowHeight - paddleHeight);
+	paddle.setPosition(windowWidth / 2, windowHeight - 2 * paddleHeight);
 
 	// Setup ball color, size, and position
 	ball.setRadius(ballRadius - 3);
@@ -147,6 +147,21 @@ bool GameDriver::checkIntersection(sf::CircleShape ball, sf::RectangleShape bric
 	return (cornerDistance_sq <= pow(ballRadius, 2));
 }
 
+bool GameDriver::checkIntersectionPaddle(sf::CircleShape ball)
+{
+	float ballDistance_x = abs(ball.getPosition().x - state.prevPaddlePosition.x);
+	float ballDistance_y = abs(ball.getPosition().y - state.prevPaddlePosition.y);
+
+	if (ballDistance_x > (paddleWidth / 2 + ballRadius)) return false;
+	if (ballDistance_y > (paddleHeight / 2 + ballRadius)) return false;
+
+	if (ballDistance_x <= paddleWidth / 2) return true;
+	if (ballDistance_x <= paddleHeight / 2) return true;
+	float cornerDistance_sq = pow((ballDistance_x - paddleWidth / 2), 2) + pow((ballDistance_x - paddleHeight / 2), 2);
+
+	return (cornerDistance_sq <= pow(ballRadius, 2));
+}
+
 void GameDriver::simulatePhysics(float deltaTime) 
 {
 	state.prevBallPosition = { ball.getPosition().x, ball.getPosition().y }; // for future functionality with velocity
@@ -158,57 +173,60 @@ void GameDriver::simulatePhysics(float deltaTime)
 		// hitting left wall
 		state.ballVector.x *= -1;
 		ballSound.play();
+		ball.setPosition(ball.getPosition().x + ballRadius + 0.5, ball.getPosition().y);
 	}
 	if (ball.getPosition().x + ballRadius > windowWidth)
 	{
 		// hitting right wall
 		state.ballVector.x *= -1;
 		ballSound.play();
+		ball.setPosition(ball.getPosition().x - ballRadius - 0.5, ball.getPosition().y);
 	}
 	if (ball.getPosition().y - ballRadius < 0)
 	{
 		// hitting top wall
 		state.ballVector.y *= -1;
 		ballSound.play();
+		ball.setPosition(ball.getPosition().x, ball.getPosition().y + ballRadius + 0.5);
 	}
 	if (ball.getPosition().y + ballRadius > windowHeight)
 	{
 		// hitting bottom wall
 		state.ballVector.y *= -1;
 		ballSound.play();
+		ball.setPosition(ball.getPosition().x, ball.getPosition().y - ballRadius - 0.5);
 		/* Once game is ready this will be a losing action
 		* state.screen = menuLose;
 		*/
 	}
 
 	// Handle paddle collisions
-	if (checkIntersection(ball, paddle))
+	if (checkIntersectionPaddle(ball))
 	{
 		// hit off the top
-		if (ball.getPosition().y + ballRadius < state.paddleVector.y - paddleHeight / 4)
+		if (ball.getPosition().y + ballRadius > state.paddleVector.y - paddleHeight / 2 - 0.5)
 		{
 			state.ballVector.y *= -1;
 			ball.setPosition(ball.getPosition().x, ball.getPosition().y - 0.5);
 		} 
 		// hit off the bottom (not possible but might as well include it)
-		else if (ball.getPosition().y - ballRadius > state.paddleVector.y + paddleHeight / 4)
+		else if (ball.getPosition().y - ballRadius < state.paddleVector.y + paddleHeight / 2 + 0.5)
 		{
 			state.ballVector.y *= -1;
 			ball.setPosition(ball.getPosition().x, ball.getPosition().y + 0.5);
 		}
 		// hit off the right side
-		else if (ball.getPosition().x - ballRadius > state.paddleVector.x + paddleWidth / 4)
+		else if (ball.getPosition().x - ballRadius < state.paddleVector.x + paddleWidth / 2 + 0.5)
 		{
-			// TODO: add some randomness to the bounciness of the edge hits
 			state.ballVector.y *= -1;
-			state.ballVector.x = abs(state.ballVector.x);
+			state.ballVector.x = abs(state.ballVector.x); // always want ball to move off in the right direction
 			ball.setPosition(ball.getPosition().x + 0.5, ball.getPosition().y);
 		}
 		// hit off the left side
-		else if (ball.getPosition().x + ballRadius < state.paddleVector.x - paddleWidth / 4)
+		else if (ball.getPosition().x + ballRadius > state.paddleVector.x - paddleWidth / 2 - 0.5)
 		{
 			state.ballVector.y *= -1;
-			state.ballVector.x = -1 * abs(state.ballVector.x);
+			state.ballVector.x = -1 * abs(state.ballVector.x); // always want ball to move off in the left direction
 			ball.setPosition(ball.getPosition().x - 0.5, ball.getPosition().y);
 		}
 
@@ -275,7 +293,7 @@ void GameDriver::handleInput(float deltaTime)
 		// Move the paddle left horizontal
 		paddle.move(-state.paddleSpeed * deltaTime, 0);
 		state.paddleVector = { paddle.getPosition().x, paddle.getPosition().y };
-		 
+		
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && (paddle.getPosition().x + paddleWidth / 2 < windowWidth - 0.5))
 	{
