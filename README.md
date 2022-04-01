@@ -6,7 +6,7 @@ I explored the usage of all the libraries of SFML except networking.
 
 This project was a good short one to cut my teeth on, and often found myself wanting to make it far more complicated than necessary as I learned
 some new exciting method for implementating a feature.
-In fact, while not implemented in these current state, I do hope my next project with the library can utilize threading to seperate out
+In fact, while not implemented in the current state, I do hope my next project with the library can utilize threading to seperate out
 my physics simulation, graphical rendering, and user input handling. While likely uncessary for small games such as this, that makes it the
 perfect playground to explore and become more experienced with those features and implementations.
 
