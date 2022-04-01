@@ -19,7 +19,7 @@ void GameDriver::init_Menu()
 	windowHeight = window.getSize().y;
 
 	//if(!
-	ballSoundBuffer.loadFromFile("filepath");
+	ballSoundBuffer.loadFromFile("./resources/ball.wav");
 	//return false;
 	ballSound.setBuffer(ballSoundBuffer);
 
@@ -53,7 +53,7 @@ void GameDriver::init_Game()
 	ball.setOutlineColor(sf::Color::Black);
 	ball.setFillColor(ballColor);
 	ball.setOrigin(ballRadius / 2, ballRadius / 2);
-	ball.setPosition(paddle.getPosition().x, paddle.getPosition().y - paddleHeight / 2 - ball.getRadius() - 1);
+	ball.setPosition(paddle.getPosition().x, paddle.getPosition().y - paddleHeight - ball.getRadius()); // should be a little above the paddle
 
 	// Setup ball state
 	state.prevBallPosition = { ball.getPosition().x, ball.getPosition().y };
@@ -132,9 +132,24 @@ void GameDriver::renderScreen()
 	window.display();
 }
 
+bool GameDriver::checkIntersection(sf::CircleShape ball, sf::RectangleShape brick)
+{
+	float ballDistance_x = abs(ball.getPosition().x - brick.getPosition().x);
+	float ballDistance_y = abs(ball.getPosition().y - brick.getPosition().y);
+
+	if (ballDistance_x > (brickWidth / 2 + ballRadius)) return false;
+	if (ballDistance_y > (brickHeight / 2 + ballRadius)) return false;
+
+	if (ballDistance_x <= brickWidth / 2) return true;
+	if (ballDistance_x <= brickHeight / 2) return true;
+	float cornerDistance_sq = pow((ballDistance_x - brickWidth / 2), 2) + pow((ballDistance_x - brickHeight / 2), 2);
+
+	return (cornerDistance_sq <= pow(ballRadius, 2));
+}
+
 void GameDriver::simulatePhysics(float deltaTime) 
 {
-	state.prevBallPosition = { ball.getPosition().x, ball.getPosition().y };
+	state.prevBallPosition = { ball.getPosition().x, ball.getPosition().y }; // for future functionality with velocity
 	ball.move(state.ballVector.x * state.ballSpeed * deltaTime, state.ballVector.y * state.ballSpeed * deltaTime);
 
 	// Handle wall collisions
@@ -167,13 +182,87 @@ void GameDriver::simulatePhysics(float deltaTime)
 	}
 
 	// Handle paddle collisions
-	if (state.ballVector.x - ballRadius >= state.paddleVector.x - paddleWidth / 2 &&
-		state.ballVector.x + ballRadius <= state.paddleVector.x + paddleWidth / 2 &&
-		state.ballVector.y + ballRadius > state.paddleVector.y - paddleHeight / 2 &&
-		state.ballVector.y - ballRadius < state.paddleVector.y + paddleHeight / 2)
+	if (checkIntersection(ball, paddle))
 	{
-		state.ballVector.y *= -1;
+		// hit off the top
+		if (ball.getPosition().y + ballRadius < state.paddleVector.y - paddleHeight / 4)
+		{
+			state.ballVector.y *= -1;
+			ball.setPosition(ball.getPosition().x, ball.getPosition().y - 0.5);
+		} 
+		// hit off the bottom (not possible but might as well include it)
+		else if (ball.getPosition().y - ballRadius > state.paddleVector.y + paddleHeight / 4)
+		{
+			state.ballVector.y *= -1;
+			ball.setPosition(ball.getPosition().x, ball.getPosition().y + 0.5);
+		}
+		// hit off the right side
+		else if (ball.getPosition().x - ballRadius > state.paddleVector.x + paddleWidth / 4)
+		{
+			// TODO: add some randomness to the bounciness of the edge hits
+			state.ballVector.y *= -1;
+			state.ballVector.x = abs(state.ballVector.x);
+			ball.setPosition(ball.getPosition().x + 0.5, ball.getPosition().y);
+		}
+		// hit off the left side
+		else if (ball.getPosition().x + ballRadius < state.paddleVector.x - paddleWidth / 4)
+		{
+			state.ballVector.y *= -1;
+			state.ballVector.x = -1 * abs(state.ballVector.x);
+			ball.setPosition(ball.getPosition().x - 0.5, ball.getPosition().y);
+		}
+
 		ballSound.play();
+	}
+
+	// Handle brick collisions
+	for (int row = bricks.size()-1; row >= 0; row--)
+	{
+		for (int col = 0; col < bricks[row].size(); col++)
+		{
+			if (checkIntersection(ball, bricks[row][col]))
+			{
+				// hit off the top
+				if (ball.getPosition().y + ballRadius < bricks[row][col].getPosition().y - brickHeight / 4)
+				{
+					state.ballVector.y *= -1;
+					ball.setPosition(ball.getPosition().x, ball.getPosition().y - 0.5);
+				}
+				// hit off the bottom (not possible but might as well include it)
+				else if (ball.getPosition().y - ballRadius > bricks[row][col].getPosition().y + brickHeight / 4)
+				{
+					state.ballVector.y *= -1;
+					ball.setPosition(ball.getPosition().x, ball.getPosition().y + 0.5);
+				}
+				// hit off the right side
+				else if (ball.getPosition().x - ballRadius > bricks[row][col].getPosition().x + brickWidth / 4)
+				{
+					// TODO: add some randomness to the bounciness of the edge hits
+					state.ballVector.y *= -1;
+					state.ballVector.x = abs(state.ballVector.x);
+					ball.setPosition(ball.getPosition().x + 0.5, ball.getPosition().y);
+				}
+				// hit off the left side
+				else if (ball.getPosition().x + ballRadius < bricks[row][col].getPosition().x - brickWidth / 4)
+				{
+					state.ballVector.y *= -1;
+					state.ballVector.x = -1 * abs(state.ballVector.x);
+					ball.setPosition(ball.getPosition().x - 0.5, ball.getPosition().y);
+				}
+
+				ballSound.play();
+
+				// Remove bricks - if end of a row - delete the row and break the inner for loop
+				bricks[row].erase(bricks[row].begin() + col);
+				--col;
+				if (bricks[row].size() == 0)
+				{
+					bricks.erase(bricks.begin() + row);
+					--row;
+					break;
+				}
+			}
+		}
 	}
 }
 
@@ -181,18 +270,20 @@ void GameDriver::handleInput(float deltaTime)
 {
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && (paddle.getPosition().x - paddleWidth / 2 > 0.5))
 	{
-		// store the current position to use as prev in the next loop
+		// store the current position to use as prev (for future functionality with velocity)
 		state.prevPaddlePosition = { paddle.getPosition().x, paddle.getPosition().y };
 		// Move the paddle left horizontal
 		paddle.move(-state.paddleSpeed * deltaTime, 0);
+		state.paddleVector = { paddle.getPosition().x, paddle.getPosition().y };
 		 
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && (paddle.getPosition().x + paddleWidth / 2 < windowWidth - 0.5))
 	{
-		// store the current position to use as prev in the next loop
+		// store the current position to use as prev (for future functionality with velocity)
 		state.prevPaddlePosition = { paddle.getPosition().x, paddle.getPosition().y };
 		// Move the paddle right horizontal
 		paddle.move(state.paddleSpeed * deltaTime, 0);
-		
+		state.paddleVector = { paddle.getPosition().x, paddle.getPosition().y };
+
 	}
 }

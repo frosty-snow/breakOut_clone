@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <math.h>
+#include <iostream> // for debugging
 
 enum gameScreen
 {
@@ -17,7 +18,7 @@ struct ObjectVector
 struct State
 {
 	gameScreen screen;  // default value set on initialization of the game;
-	std::vector<float> prevBallPosition; 
+	ObjectVector prevBallPosition; 
 	ObjectVector ballVector; 
 
 	ObjectVector prevPaddlePosition;
@@ -25,7 +26,7 @@ struct State
 
 
 	// Values can be adjusted here for testing to find good game speed
-	const float ballSpeed = 200;
+	const float ballSpeed = 400;
 	const float paddleSpeed = 400;
 
 };
@@ -79,7 +80,12 @@ public:
 	void init_Menu();
 	void init_Game();
 	void buildLayout();
+
+
 	void renderScreen();
+
+	// Collision and physics
+	bool checkIntersection(sf::CircleShape ball, sf::RectangleShape brick);
 	void simulatePhysics(float deltaTime);
 
 	// User input
