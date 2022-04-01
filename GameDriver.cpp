@@ -18,11 +18,10 @@ void GameDriver::init_Menu()
 	windowWidth = window.getSize().x;
 	windowHeight = window.getSize().y;
 
-	// TODO: choose sound to use and add it here
-	/*
-	if(!ballSoundBuffer.loadFromFile("filepath")) return false;
-	ballSound(ballSoundBuffer);
-	*/
+	//if(!
+	ballSoundBuffer.loadFromFile("filepath");
+	//return false;
+	ballSound.setBuffer(ballSoundBuffer);
 
 	// Load font
 	//if (!
@@ -39,7 +38,7 @@ void GameDriver::init_Menu()
 
 void GameDriver::init_Game()
 {
-	// Setup paddle
+	// Setup paddle size, color, and position
 	sf::Vector2f paddleSize(paddleWidth, paddleHeight);
 	paddle.setSize(paddleSize - sf::Vector2f(3, 3));
 	paddle.setOutlineThickness(3);
@@ -48,7 +47,7 @@ void GameDriver::init_Game()
 	paddle.setOrigin(paddleSize / 2.f);
 	paddle.setPosition(windowWidth / 2, windowHeight - paddleHeight);
 
-	// Setup ball
+	// Setup ball color, size, and position
 	ball.setRadius(ballRadius - 3);
 	ball.setOutlineThickness(3);
 	ball.setOutlineColor(sf::Color::Black);
@@ -56,7 +55,15 @@ void GameDriver::init_Game()
 	ball.setOrigin(ballRadius / 2, ballRadius / 2);
 	ball.setPosition(paddle.getPosition().x, paddle.getPosition().y - paddleHeight / 2 - ball.getRadius() - 1);
 
-	// Setup bricks
+	// Setup ball state
+	state.prevBallPosition = { ball.getPosition().x, ball.getPosition().y };
+	state.ballVector = { (float)cos((double)225 * (pi / 180)), (float)sin((double)225 * (pi / 180)) };
+
+	// Setup paddle state
+	state.prevPaddlePosition = { paddle.getPosition().x, paddle.getPosition().y };
+	state.paddleVector = { paddle.getPosition().x, paddle.getPosition().y }; // paddle starts stationary with no vector - updates on user input
+
+	// Create brick 2D vectors for render on screen
 	buildLayout();
 }
 
@@ -125,6 +132,67 @@ void GameDriver::renderScreen()
 	window.display();
 }
 
-void GameDriver::simulatePhysics() {
+void GameDriver::simulatePhysics(float deltaTime) 
+{
+	state.prevBallPosition = { ball.getPosition().x, ball.getPosition().y };
+	ball.move(state.ballVector.x * state.ballSpeed * deltaTime, state.ballVector.y * state.ballSpeed * deltaTime);
 
+	// Handle wall collisions
+	if (ball.getPosition().x - ballRadius < 0)
+	{
+		// hitting left wall
+		state.ballVector.x *= -1;
+		ballSound.play();
+	}
+	if (ball.getPosition().x + ballRadius > windowWidth)
+	{
+		// hitting right wall
+		state.ballVector.x *= -1;
+		ballSound.play();
+	}
+	if (ball.getPosition().y - ballRadius < 0)
+	{
+		// hitting top wall
+		state.ballVector.y *= -1;
+		ballSound.play();
+	}
+	if (ball.getPosition().y + ballRadius > windowHeight)
+	{
+		// hitting bottom wall
+		state.ballVector.y *= -1;
+		ballSound.play();
+		/* Once game is ready this will be a losing action
+		* state.screen = menuLose;
+		*/
+	}
+
+	// Handle paddle collisions
+	if (state.ballVector.x - ballRadius >= state.paddleVector.x - paddleWidth / 2 &&
+		state.ballVector.x + ballRadius <= state.paddleVector.x + paddleWidth / 2 &&
+		state.ballVector.y + ballRadius > state.paddleVector.y - paddleHeight / 2 &&
+		state.ballVector.y - ballRadius < state.paddleVector.y + paddleHeight / 2)
+	{
+		state.ballVector.y *= -1;
+		ballSound.play();
+	}
+}
+
+void GameDriver::handleInput(float deltaTime)
+{
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && (paddle.getPosition().x - paddleWidth / 2 > 0.5))
+	{
+		// store the current position to use as prev in the next loop
+		state.prevPaddlePosition = { paddle.getPosition().x, paddle.getPosition().y };
+		// Move the paddle left horizontal
+		paddle.move(-state.paddleSpeed * deltaTime, 0);
+		 
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && (paddle.getPosition().x + paddleWidth / 2 < windowWidth - 0.5))
+	{
+		// store the current position to use as prev in the next loop
+		state.prevPaddlePosition = { paddle.getPosition().x, paddle.getPosition().y };
+		// Move the paddle right horizontal
+		paddle.move(state.paddleSpeed * deltaTime, 0);
+		
+	}
 }

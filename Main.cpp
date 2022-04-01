@@ -4,6 +4,7 @@
 int main()
 {
     GameDriver* game = new GameDriver();
+    sf::Clock clock;
 
     while (game->window.isOpen()) {
         sf::Event event;
@@ -20,7 +21,15 @@ int main()
             {
                 game->init_Game();
                 game->state.screen = playing;
+                clock.restart();
             }
+        }
+        float deltaTime = clock.restart().asSeconds();
+
+        if (game->state.screen == playing)
+        {
+            game->handleInput(deltaTime);
+            game->simulatePhysics(deltaTime);
         }
 
         game->renderScreen();
@@ -32,5 +41,5 @@ int main()
     // second thread would render the screen
     // third thread that handles user input?
 
-    return 0;
+    return EXIT_SUCCESS;
 }
